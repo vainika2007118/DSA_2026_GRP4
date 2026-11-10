@@ -40,37 +40,29 @@ int baseline_predict(const uint16_t x[4])
     }
 }
 
-int main(void) 
+int main(void)
 {
     int mismatches = 0;
-    int correct_all = 0;
-    int correct_test = 0;
-    int test_total = NUM_INPUTS - NUM_TRAIN;
+    int correct = 0;
 
     for (int i = 0; i < NUM_INPUTS; i++) {
         int pred = baseline_predict(features[i]);
 
         if (pred != python_pred[i]) {
             mismatches++;
-            if (mismatches <= 5) {
-                printf("Mismatch at input %d: C=%d, Python=%d\n", i, pred, python_pred[i]);
-            }
+            printf("Mismatch at input %d: C=%d, Python=%d\n", i, pred, python_pred[i]);
+            
         }
 
         if (pred == labels[i]) {
-            correct_all++;
-            if (i >= NUM_TRAIN) {
-                correct_test++;
-            }
+            correct++;
         }
     }
 
-    int acc_all = (correct_all * 1000) / NUM_INPUTS;
-    int acc_test = (correct_test * 1000) / test_total;
+    int acc = (correct * 1000) / NUM_INPUTS;
 
     printf("Mismatches vs Python: %d / %d\n", mismatches, NUM_INPUTS);
-    printf("Accuracy (all inputs): %d.%d%%\n", acc_all / 10, acc_all % 10);
-    printf("Accuracy (test inputs): %d.%d%%\n", acc_test / 10, acc_test % 10);
+    printf("Accuracy (all inputs): %d.%d%%\n", acc / 10, acc % 10);
 
     return 0;
 }
