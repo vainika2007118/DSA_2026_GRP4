@@ -124,10 +124,10 @@ int main(void) {
     printf("Mismatches vs Python: %d / %d\n\n", mismatches, NUM_INPUTS);
 
     
-    FILE *f = fopen("results/array_results.csv", "a");
-    if (f == NULL) {
-        printf("Could not open results/array_results.csv (does the results folder exist?)\n");
-        return 1;
+       FILE *f = fopen("week3/results/array_results.csv", "a");
+   if (f == NULL) {
+       printf("Could not open week3/results/array_results.csv (does the folder exist?)\n");
+       return 1;
     }
     fseek(f, 0, SEEK_END);
     if (ftell(f) == 0) {
