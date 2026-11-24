@@ -1,7 +1,4 @@
-/* Week 3: Pointer tree experiments
- * Measures model size, nodes visited, time per prediction and accuracy
- * for one tree file, and appends a row to week3/results/pointer_results.csv
- */
+/* Week 3: Pointer tree experiments */
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
@@ -14,15 +11,15 @@
 
 #define MAX_NODES 256
 #define LEAF -1
-#define REPEATS 1000
+#define REPEATS 1000     /* run all inputs this many times */
 
 /* Small node: tight field types, used for the actual tree */
 typedef struct node_small {
-    int8_t             feature;
-    int8_t             cls;
-    uint16_t           threshold;
-    struct node_small *left;
-    struct node_small *right;
+    int8_t             feature;    /* 0-3 = question, -1 = leaf */
+    int8_t             cls;        /* 0 = healthy, 1 = faulty, -1 = none */
+    uint16_t           threshold;  /* compare value */
+    struct node_small *left;       /* child if feature <= threshold */
+    struct node_small *right;      /* child if feature > threshold */
 } node_small_t;
 
 /* Wide node: same fields as 32-bit numbers, only for size comparison */
@@ -70,7 +67,6 @@ int pointer_predict(const uint16_t x[4], int *visited) {
 }
 
 int main(void) {
-    /* ---- Build ---- */
     int num_nodes  = (int)(sizeof(tree_table) / sizeof(tree_table[0]));
     build_tree(num_nodes);
 
@@ -79,7 +75,6 @@ int main(void) {
     int size_small = (int)(sizeof(node_small_t) * num_nodes);
     int size_wide  = (int)(sizeof(node_wide_t)  * num_nodes);
 
-    /* ---- Correctness, accuracy, nodes visited ---- */
     int mismatches = 0;
     int correct = 0;
     long total_visited = 0;
@@ -97,7 +92,6 @@ int main(void) {
     int acc = correct * 1000 / NUM_INPUTS;
     int avg_visited_x100 = (int)(total_visited * 100 / NUM_INPUTS);
 
-    /* ---- Timing ---- */
     volatile int sink = 0;
     int v;
     clock_t start = clock();
@@ -112,19 +106,18 @@ int main(void) {
     long long num_preds = (long long)REPEATS * NUM_INPUTS;
     long long ns_x100   = ns_total * 100 / num_preds;
 
-    /* ---- Print ---- */
     printf("Tree: %s\n", TREE_FILE);
     printf("Nodes: %d (no empty slots)\n", num_nodes);
-    printf("Model size: %d bytes (small fields), %d bytes (32-bit fields)\n", size_small, size_wide);
     printf("Node size: %d bytes (small), %d bytes (wide)\n",
            (int)sizeof(node_small_t), (int)sizeof(node_wide_t));
+    printf("Model size: %d bytes (small fields), %d bytes (32-bit fields)\n", size_small, size_wide);
     printf("Nodes visited per prediction: avg %d.%02d, max %d\n",
            avg_visited_x100 / 100, avg_visited_x100 % 100, max_visited);
     printf("Time per prediction: %lld.%02lld ns\n", ns_x100 / 100, ns_x100 % 100);
     printf("Accuracy: %d.%d%%\n", acc / 10, acc % 10);
     printf("Mismatches vs Python: %d / %d\n\n", mismatches, NUM_INPUTS);
 
-    /* ---- Save to CSV (same columns as array_results.csv) ---- */
+#ifndef NO_CSV
     FILE *f = fopen("week3/results/pointer_results.csv", "a");
     if (f == NULL) {
         printf("Could not open week3/results/pointer_results.csv (does the folder exist?)\n");
@@ -140,6 +133,7 @@ int main(void) {
             avg_visited_x100 / 100, avg_visited_x100 % 100, max_visited,
             ns_x100 / 100, ns_x100 % 100, acc / 10, acc % 10, mismatches);
     fclose(f);
+#endif
 
     return 0;
 }
