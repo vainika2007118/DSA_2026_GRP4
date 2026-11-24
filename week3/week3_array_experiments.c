@@ -5,22 +5,20 @@
 #include "features.h"
 
 #ifndef TREE_FILE
-#define TREE_FILE "tree_d3.h"   
+#define TREE_FILE "tree_d3.h"
 #endif
 #include TREE_FILE
 
-#define MAX_SLOTS 8191  
+#define MAX_SLOTS 8191
 #define LEAF  -1
 #define EMPTY -2
-#define REPEATS 1000     /* run all inputs this many times*/
-
+#define REPEATS 1000     /* run all inputs this many times */
 
 typedef struct {
     int8_t   feature;    /* 0-3 = question, -1 = leaf, -2 = empty */
     int8_t   cls;        /* 0 = healthy, 1 = faulty, -1 = none */
     uint16_t threshold;  /* compare value */
 } slot_small_t;
-
 
 typedef struct {
     int32_t feature;
@@ -80,7 +78,6 @@ int main(void) {
     int size_small = (int)(sizeof(slot_small_t) * num_slots);
     int size_wide  = (int)(sizeof(slot_wide_t)  * num_slots);
 
-    
     int mismatches = 0;
     int correct = 0;
     long total_visited = 0;
@@ -95,11 +92,10 @@ int main(void) {
         if (pred == labels[i]) correct++;
     }
 
-    int acc = correct * 1000 / NUM_INPUTS;                     
-    int avg_visited_x100 = (int)(total_visited * 100 / NUM_INPUTS); 
+    int acc = correct * 1000 / NUM_INPUTS;
+    int avg_visited_x100 = (int)(total_visited * 100 / NUM_INPUTS);
 
-    
-    volatile int sink = 0;     
+    volatile int sink = 0;
     int v;
     clock_t start = clock();
     for (int r = 0; r < REPEATS; r++) {
@@ -111,9 +107,8 @@ int main(void) {
 
     long long ns_total  = (long long)(end - start) * 1000000000LL / CLOCKS_PER_SEC;
     long long num_preds = (long long)REPEATS * NUM_INPUTS;
-    long long ns_x100   = ns_total * 100 / num_preds;          
+    long long ns_x100   = ns_total * 100 / num_preds;
 
-   
     printf("Tree: %s\n", TREE_FILE);
     printf("Nodes: %d, slots: %d, empty slots: %d\n", num_nodes, num_slots, empty);
     printf("Model size: %d bytes (small fields), %d bytes (32-bit fields)\n", size_small, size_wide);
@@ -123,11 +118,11 @@ int main(void) {
     printf("Accuracy: %d.%d%%\n", acc / 10, acc % 10);
     printf("Mismatches vs Python: %d / %d\n\n", mismatches, NUM_INPUTS);
 
-    
-       FILE *f = fopen("week3/results/array_results.csv", "a");
-   if (f == NULL) {
-       printf("Could not open week3/results/array_results.csv (does the folder exist?)\n");
-       return 1;
+#ifndef NO_CSV
+    FILE *f = fopen("week3/results/array_results.csv", "a");
+    if (f == NULL) {
+        printf("Could not open week3/results/array_results.csv (does the folder exist?)\n");
+        return 1;
     }
     fseek(f, 0, SEEK_END);
     if (ftell(f) == 0) {
@@ -139,6 +134,7 @@ int main(void) {
             avg_visited_x100 / 100, avg_visited_x100 % 100, max_visited,
             ns_x100 / 100, ns_x100 % 100, acc / 10, acc % 10, mismatches);
     fclose(f);
+#endif
 
     return 0;
 }
